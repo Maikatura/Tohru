@@ -1,10 +1,28 @@
 const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
-   
-  data: new SlashCommandBuilder().setName('help').setDescription('Need some help'),
-  async execute(client, interaction) {
+  name: "help",
+  description: "Give you some help?",
+  usage: "",
+  aliases: ["path"],
 
-    await interaction.reply("all I can do is `/pat` for now");
+  execute: async (client, interaction, args) => {
+
+    await interaction.reply("Dont work yet")
+
   },
+  SlashCommand: {
+
+    execute: async (client, interaction, args) => {
+
+      
+
+
+
+      await interaction.reply(`Help? modCheck`);
+
+
+    }
+  }
+  
 }

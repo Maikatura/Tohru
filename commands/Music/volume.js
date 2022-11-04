@@ -3,8 +3,9 @@ const { EmbedBuilder } = require("discord.js");
 const { QueryType } = require("discord-player");
 
 module.exports = {
-  name: "resume",
-  description: "Resume the current song.",
+
+  name: "volume",
+  description: "Set the current volume.",
   usage: "",
   aliases: ["conf"],
 
@@ -14,6 +15,7 @@ module.exports = {
 
   },
   SlashCommand: {
+
     execute: async (client, interaction, args) => {
       const queue = client.player.getQueue(interaction.guild);
 
@@ -22,9 +24,11 @@ module.exports = {
         return;
       }
 
-      queue.setPaused(false);
+      let volumeValue = interaction.options.getString("value");
 
-      await interaction.reply("Song has been resumed");
+      queue.setVolume(volumeValue);
+
+      await interaction.reply(`Volume set to ${volumeValue}`);
 
     }
   }

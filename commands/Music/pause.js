@@ -4,11 +4,19 @@ const { QueryType } = require("discord-player");
  
 module.exports = {
    
-  data: new SlashCommandBuilder()
-    .setName('pause')
-    .setDescription('pause the current song.'),
+  name: "pause",
+  description: "Pause the current song.",
+  usage: "",
+  aliases: ["conf"],
 
-  execute: async ({client, interaction}) => {
+  execute: async (client, interaction, args) => {
+
+    await interaction.reply("Dont work yet")
+  
+  },
+  SlashCommand: {
+    
+  execute: async (client, interaction, args) => {
 
     const queue = client.player.getQueue(interaction.guild);
 
@@ -21,5 +29,6 @@ module.exports = {
 
     await interaction.reply("Song has been paused");
 
-  },
+  }
+},
 }
