@@ -6,7 +6,7 @@ const { SlashCommandBuilder } = require('discord.js');
 module.exports = {
    
   data: new SlashCommandBuilder().setName('pat').setDescription('Pat someone'),
-  async execute(interaction) {
+  execute: async ({client, interaction}) => {
 
     let dataPath = './commands/Fun/pat.json'
     let json = {}
@@ -28,7 +28,6 @@ module.exports = {
 
     if (!pats[interaction.guild.id]) pats[interaction.guild.id] = {};
     if(!pats[interaction.guild.id].pats) pats[interaction.guild.id].pats = 0;
-
 
     pats[interaction.guild.id].pats++;
 

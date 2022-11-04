@@ -1,9 +1,16 @@
 const fs = require('fs');
 const path = require('node:path');
-const { Client, Collection, Events, GatewayIntentBits, REST, Routes } = require('discord.js');
+const {REST } = require("@discordjs/rest");
+const {Routes} = require("discord-api-types/v9");
+const { Client, Collection, Events, IntentsBitField, Intents } = require('discord.js');
 const { TOKEN, clientId } = require("./config.json");
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const { Player } = require("discord-player");
 
+
+const myIntents = new IntentsBitField();
+myIntents.add(IntentsBitField.Flags.Guilds, IntentsBitField.Flags.GuildMessages, IntentsBitField.Flags.GuildVoiceStates);
+
+const client = new Client({ intents: myIntents });
 client.commands = new Collection();
 
 const commands = [];
@@ -36,31 +43,48 @@ for (const file of commandFiles) {
 	}
 }
 
-// Construct and prepare an instance of the REST module
-const rest = new REST({ version: '10' }).setToken(TOKEN);
 
-// and deploy your commands!
-(async () => {
-	try {
-		console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
-		// The put method is used to fully refresh all commands in the guild with the current set
-		const data = await rest.put(
-			Routes.applicationCommands(clientId),
-			{ body: commands },
-		);
 
-		console.log(`Successfully reloaded ${data.length} application (/) commands.`);
-	} catch (error) {
-		// And of course, make sure you catch and log any errors!
-		console.error(error);
+client.player = new Player(client, {
+	ytdlOptions:{
+	  quality: "highestaudio",
+	  highWaterMark: 1 << 25
 	}
-})();
+  });
+
+client.on("ready", () => {
+	const guild_ids = client.guilds.cache.map(guild => guild);
+
+	const rest = new REST({version: "9"}).setToken(TOKEN);
+
+	for (const guildId of guild_ids)
+	{
+		rest.get(Routes.applicationGuildCommands(clientId, guildId.id))
+		.then(data => {
+			const promises = [];
+			for (const command of data) {
+				const deleteUrl = `${Routes.applicationGuildCommands(clientId, guildId.id)}/${command.id}`;
+				promises.push(rest.delete(deleteUrl));
+			}
+			
+		 	console.log(`Reset commands for ${guildId.id}, Name of Guild: ${guildId.name}`)
+
+			return Promise.all(promises);
+		});
+
+		rest.put(Routes.applicationGuildCommands(clientId, guildId.id), {
+			body: commands
+		})
+		.then(() => console.log(`Added commands to ${guildId.id}, Name of Guild: ${guildId.name}`))
+		.catch(console.error);
+	}
+});
 
 client.on(Events.InteractionCreate, async interaction => {
 	if (!interaction.isChatInputCommand()) return;
 
-	const command = interaction.client.commands.get(interaction.commandName);
+	const command = client.commands.get(interaction.commandName);
 
 	if (!command) {
 		console.error(`No command matching ${interaction.commandName} was found.`);
@@ -68,12 +92,14 @@ client.on(Events.InteractionCreate, async interaction => {
 	}
 
 	try {
-		await command.execute(interaction);
+		await command.execute({client, interaction});
 	} catch (error) {
 		console.error(error);
 		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	}
 });
+
+
 
 
 client.login(TOKEN);
