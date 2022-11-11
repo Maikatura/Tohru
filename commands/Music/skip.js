@@ -11,10 +11,21 @@ module.exports = {
 
   execute: async (client, interaction, args) => {
 
-    await interaction.reply("Dont work yet")
+    const queue = client.player.getQueue(interaction.guild);
+
+      if (!queue) 
+      {
+        await interaction.reply("There is no song playing.");
+        return;
+      }
+
+      const currentSong = queue.current;
+
+      queue.skip();
+
+      await interaction.reply(`❌ | Skipping **${currentSong.title}**!`);
 
   },
-
   SlashCommand: {
 
     execute: async (client, interaction, args) => {
@@ -30,13 +41,7 @@ module.exports = {
 
       queue.skip();
 
-      await interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setDescription(`Skipped **${currentSong.title}**`)
-            .setThumbnail(currentSong.thumbnail)
-        ]
-      });
+      await interaction.reply(`❌ | Skipping **${currentSong.title}**!`);
     }
   }
 }

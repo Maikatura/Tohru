@@ -11,10 +11,31 @@ module.exports = {
 
   execute: async (client, interaction, args) => {
 
-    await interaction.reply("Dont work yet")
+    const queue = client.player.getQueue(interaction.guild);
+
+      if (!queue) 
+      {
+        await interaction.reply("There is no song playing.");
+        return;
+      }
+
+      let volumeValue = args[0];
+
+      queue.setVolume(volumeValue);
+
+      await interaction.reply(`Volume set to ${volumeValue}`);
 
   },
   SlashCommand: {
+
+    options: [
+      {
+        name: "value",
+        description: "Set play volume",
+        type: 3,
+        required: true,
+      },
+    ],
 
     execute: async (client, interaction, args) => {
       const queue = client.player.getQueue(interaction.guild);

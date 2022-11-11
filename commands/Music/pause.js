@@ -11,7 +11,16 @@ module.exports = {
 
   execute: async (client, interaction, args) => {
 
-    await interaction.reply("Dont work yet")
+    const queue = client.player.getQueue(interaction.guild);
+
+    if (!queue) {
+        await interaction.reply("There is no song playing.");
+        return;
+    }
+
+    queue.setPaused(true);
+
+    await interaction.reply("Song has been paused");
   
   },
   SlashCommand: {

@@ -8,7 +8,7 @@ module.exports = {
 
   execute: async (client, interaction, args) => {
 
-    await interaction.reply("Dont work yet")
+    await interaction.reply(`Help? modCheck`);
 
   },
   SlashCommand: {

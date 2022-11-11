@@ -11,66 +11,92 @@ module.exports = {
 
   execute: async (client, interaction, args) => {
 
-    await interaction.reply("Dont work yet")
-  
+    if (!interaction.member.voice.channel) {
+      await interaction.reply("You must be in a voice channel");
+      return;
+    }
+
+    const queue = await client.player.createQueue(interaction.guild, {
+      metadata: {
+        channel: interaction.channel
+      }
+    });
+
+    if (!queue.connection) await queue.connect(interaction.member.voice.channel);
+
+    let url = args.join(' ');
+
+    console.log(url);
+
+    try {
+      if (!queue.connection) await queue.connect(interaction.member.voice.channel);
+    } catch {
+      queue.destroy();
+      return await interaction.reply({ content: "Could not join your voice channel!", ephemeral: true });
+    }
+
+
+    const track = await client.player.search(url, {
+      requestedBy: interaction.author.id
+    }).then(x => x.tracks[0]);
+
+    if (!track) return await interaction.reply("Sorry didn't find anything");
+
+    await queue.addTrack(track);
+
+    if (!queue.playing) await queue.play();
+
+    await interaction.reply(`🎶 | **${track.title}** added to the queue`);
+
   },
   SlashCommand: {
-    
-        options: [
-          {
-            name: "song",
-            description: "a song that you want to play.",
-            type: 3,
-            required: true,
-          },
-        ],
+
+    options: [
+      {
+        name: "song",
+        description: "a song that you want to play.",
+        type: 3,
+        required: true,
+      },
+    ],
 
     execute: async (client, interaction, args) => {
       if (!interaction.member.voice.channel) {
         await interaction.reply("You must be in a voice channel");
         return;
       }
-  
-      const queue = await client.player.createQueue(interaction.guild);
-  
+
+      const queue = await client.player.createQueue(interaction.guild, {
+        metadata: {
+          channel: interaction.channel
+        }
+      });
+
       if (!queue.connection) await queue.connect(interaction.member.voice.channel);
-  
+
       let url = interaction.options.getString("song");
-  
 
-    
 
-      const result = await client.player.search(url, {
-        requestedBy: interaction.user,
-        searchEngine: QueryType.AUTO,
-      })
-  
-      if (result.tracks.length === 0) {
-
-        await interaction.reply("No song(s) found");
-    
-        return;
+      try {
+        if (!queue.connection) await queue.connect(interaction.member.voice.channel);
+      } catch {
+        queue.destroy();
+        return await interaction.reply({ content: "Could not join your voice channel!", ephemeral: true });
       }
-  
-      let embed = new EmbedBuilder();
-      
-      
-        const song = result.tracks;
-        await queue.addTracks(song);
-
-        embed
-        .setDescription(`Added **[${song[0].title}](${song[0].url})** to the queue`)
-        .setThumbnail(song[0].thumbnail)
-        .setFooter({ text: `Duration: ${song[0].duration}`, iconURL: 'https://i.imgur.com/nNf0fSx.jpeg' });
 
 
-  
+      const track = await client.player.search(url, {
+        requestedBy: interaction.user
+      }).then(x => x.tracks[0]);
+
+      if (!track) return await interaction.reply("Sorry didn't find anything");
+
+      await queue.addTrack(track);
+
       if (!queue.playing) await queue.play();
 
-      await interaction.reply({
-        embeds: [embed]
-      }); 
-  
+      await interaction.reply(`🎶 | **${track.title}** added to the queue`);
+
     }
   }
 }

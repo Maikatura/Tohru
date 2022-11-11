@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('node:path');
 const { REST } = require("@discordjs/rest");
 const { Routes } = require("discord-api-types/v9");
+const Discord = require('discord.js');
 const { Client, Collection, Events, IntentsBitField, Intents } = require('discord.js');
 const { TOKEN, clientId, Prefix } = require("./config.json");
 const { Player } = require("discord-player");
@@ -10,7 +11,7 @@ const { Player } = require("discord-player");
 const myIntents = new IntentsBitField();
 myIntents.add(IntentsBitField.Flags.Guilds, IntentsBitField.Flags.GuildMessages, IntentsBitField.Flags.GuildVoiceStates);
 
-const client = new Client({ intents: myIntents });
+const client = new Discord.Client({ intents: myIntents });
 client.commands = new Collection();
 
 const commands = [];
@@ -60,9 +61,18 @@ for (const file of commandFiles) {
 client.player = new Player(client, {
 	ytdlOptions: {
 		quality: "highestaudio",
-		highWaterMark: 1 << 25
-	}
+		highWaterMark: 1 << 25,
+	
+	},
+	connectionTimeout: 10000000
 });
+
+client.player.on("trackStart", (queue, track) => queue.metadata.channel.send(`🎶 | Now playing **${track.title}**!`))
+
+client.on(Events.Error, (error) => console.log(error));
+
+client.player.on("error", (error) => {console.log(error)});
+client.player.on("connectionError", (error) => {console.log(error)});
 
 client.on("ready", () => {
 
@@ -86,12 +96,53 @@ client.on("ready", () => {
 
 });
 
+client.on(Events.MessageCreate, async (interaction) => {
 
+	if(interaction.author.bot === true) return;
 
+	console.log(interaction.author);
+	
+
+	const channel = await client.channels.cache.get(interaction.channelId);
+	
+	let message = await channel.messages
+    .fetch({ limit: 1 })
+    .then(messagePage => (messagePage.size === 1 ? messagePage.at(0) : null));
+
+	
+	let argsTemp = message.content.split(" ");
+	let cmd = argsTemp[0].toLowerCase();
+
+	let realCmd = cmd.replace(Prefix, '');
+	
+	const command = client.commands.get(realCmd.toLowerCase());
+	let args = argsTemp.join(' ').replace(argsTemp[0] + ' ', '').split(' ');
+	
+	console.log(cmd)
+
+	if (!command) 
+	{
+		console.error(`No command matching ${interaction.commandName} was found.`);
+		return;
+	}
+
+    try 
+	{
+		if (command && command.execute)
+		{
+			command.execute(client, interaction, args);
+		}
+	} 
+	catch (error) 
+	{
+		console.error(error);
+		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+	}
+});
 
 client.on(Events.InteractionCreate, async (interaction) => {
 
-	if (!interaction.isChatInputCommand()) return;
+	if (!interaction.isChatInputCommand()) await interaction.reply("Halli");
 
 	
 	const command = client.commands.get(interaction.commandName.toLowerCase());
@@ -101,7 +152,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
 		console.error(`No command matching ${interaction.commandName} was found.`);
 		return;
 	}
-
 
 	try {
 		if (command.SlashCommand && command.execute)

@@ -11,7 +11,16 @@ module.exports = {
 
   execute: async (client, interaction, args) => {
 
-    await interaction.reply("Dont work yet")
+    const queue = client.player.getQueue(interaction.guild);
+
+      if (!queue) {
+        await interaction.reply("There is no song playing.");
+        return;
+      }
+
+      queue.destroy();
+
+      await interaction.reply("I left the voice channel")
 
   },
   SlashCommand: {
@@ -24,7 +33,7 @@ module.exports = {
         return;
       }
 
-      queue.destory();
+      queue.destroy();
 
       await interaction.reply("I left the voice channel")
 
