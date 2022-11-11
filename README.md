@@ -8,3 +8,7 @@
 
 #### Bla bla bla
 Use it as you like :D
+
+
+use my bot here (First ppl to get it will have it since I dont wanna verify it) :D
+https://discord.com/oauth2/authorize/?permissions=8&scope=bot&client_id=401450098946736128
