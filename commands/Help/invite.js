@@ -4,33 +4,20 @@ const { QueryType } = require("discord-player");
 
 module.exports = {
 
-  name: "volume",
-  description: "Set the current volume.",
+  name: "invite",
+  description: "Invite me.",
   usage: "",
-  aliases: ["conf"],
+  aliases: ["inv"],
 
   execute: async (client, interaction, args) => {
 
-    
-    await interaction.reply("Test command");
-
+    await interaction.reply(`https://discord.com/oauth2/authorize/?permissions=8&scope=bot&client_id=${client.user.id}`);
   },
   SlashCommand: {
 
-    options: [
-      {
-        name: "value",
-        description: "Set play volume",
-        type: 3,
-        required: true,
-      },
-    ],
-
     execute: async (client, interaction, args) => {
       
-
-      await interaction.reply("Test command");
-
+        await interaction.reply(`https://discord.com/oauth2/authorize/?permissions=8&scope=bot&client_id=${client.user.id}`);
     }
   }
 }

@@ -63,8 +63,7 @@ client.player = new Player(client, {
 		quality: "highestaudio",
 		highWaterMark: 1 << 25,
 	
-	},
-	connectionTimeout: 10000000
+	}
 });
 
 client.player.on("trackStart", (queue, track) => queue.metadata.channel.send(`🎶 | Now playing **${track.title}**!`))
@@ -100,9 +99,6 @@ client.on(Events.MessageCreate, async (interaction) => {
 
 	if(interaction.author.bot === true) return;
 
-	console.log(interaction.author);
-	
-
 	const channel = await client.channels.cache.get(interaction.channelId);
 	
 	let message = await channel.messages
@@ -118,7 +114,6 @@ client.on(Events.MessageCreate, async (interaction) => {
 	const command = client.commands.get(realCmd.toLowerCase());
 	let args = argsTemp.join(' ').replace(argsTemp[0] + ' ', '').split(' ');
 	
-	console.log(cmd)
 
 	if (!command) 
 	{
@@ -142,9 +137,8 @@ client.on(Events.MessageCreate, async (interaction) => {
 
 client.on(Events.InteractionCreate, async (interaction) => {
 
-	if (!interaction.isChatInputCommand()) await interaction.reply("Halli");
+	if (!interaction.isChatInputCommand()) return;
 
-	
 	const command = client.commands.get(interaction.commandName.toLowerCase());
 	const args = command.options;
 
@@ -162,8 +156,5 @@ client.on(Events.InteractionCreate, async (interaction) => {
 	}
 
 });
-
-
-
 
 client.login(TOKEN);

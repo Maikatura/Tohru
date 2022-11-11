@@ -7,7 +7,7 @@ module.exports = {
   name: "play",
   description: "Play a song.",
   usage: "",
-  aliases: ["conf"],
+  aliases: ["p"],
 
   execute: async (client, interaction, args) => {
 
@@ -22,11 +22,13 @@ module.exports = {
       }
     });
 
+  
+
     if (!queue.connection) await queue.connect(interaction.member.voice.channel);
 
     let url = args.join(' ');
 
-    console.log(url);
+  
 
     try {
       if (!queue.connection) await queue.connect(interaction.member.voice.channel);
@@ -35,19 +37,71 @@ module.exports = {
       return await interaction.reply({ content: "Could not join your voice channel!", ephemeral: true });
     }
 
+    let searchType = QueryType.AUTO;
 
-    const track = await client.player.search(url, {
-      requestedBy: interaction.author.id
-    }).then(x => x.tracks[0]);
+      if (url.includes("list=")){
+        searchType = QueryType.YOUTUBE_PLAYLIST;
+      }
+  
+      let result;
 
-    if (!track) return await interaction.reply("Sorry didn't find anything");
+      if (searchType === QueryType.YOUTUBE_PLAYLIST)
+      {
+        let searchResult = await client.player.search(url, {
+          requestedBy: interaction.author,
+          searchEngine: searchType
+        });
 
-    await queue.addTrack(track);
+        if (searchResult.tracks.length === 0){
+          await interaction.reply("Sorry didn't find anything");
+          return;
+        }
 
-    if (!queue.playing) await queue.play();
+        const playlist = searchResult.tracks;
 
-    await interaction.reply(`🎶 | **${track.title}** added to the queue`);
 
+        result = searchResult.playlist;
+
+        for (let i = 0; i < playlist.length; i++) {
+          await queue.addTrack(playlist[i]);
+        } 
+      
+      
+
+      }
+      else
+      {
+        
+        result = await client.player.search(url, {
+          requestedBy: interaction.author,
+          searchEngine: searchType
+        }).then(x => x.tracks[0]);
+
+        if (!result){
+          await interaction.reply("Sorry didn't find anything");
+          return;
+        } 
+        await queue.addTrack(result);
+
+        //await interaction.reply(`🎶 | **${result.title}** added to the queue`);
+      }
+
+      if (!queue.playing) await queue.play();
+
+      await interaction.reply(`🎶 | **${result.title}** added to the queue`);
+      
+      queue.options = {
+        ytdlOptions: {
+          quality: "highestaudio",
+          highWaterMark: 1 << 25,
+        
+        },
+        leaveOnEnd: true,
+        leaveOnEndCooldown: 100000,
+        leaveOnStop: false,
+        autoSelfDeaf: true,
+      }
+      
   },
   SlashCommand: {
 
@@ -72,7 +126,12 @@ module.exports = {
         }
       });
 
+      
+
       if (!queue.connection) await queue.connect(interaction.member.voice.channel);
+
+
+
 
       let url = interaction.options.getString("song");
 
@@ -84,19 +143,75 @@ module.exports = {
         return await interaction.reply({ content: "Could not join your voice channel!", ephemeral: true });
       }
 
+      let searchType = QueryType.AUTO;
 
-      const track = await client.player.search(url, {
-        requestedBy: interaction.user
-      }).then(x => x.tracks[0]);
+      if (url.includes("list=")){
+        searchType = QueryType.YOUTUBE_PLAYLIST;
+      }
+  
+      let result;
 
-      if (!track) return await interaction.reply("Sorry didn't find anything");
+      console.log(interaction.user);
 
-      await queue.addTrack(track);
+      if (searchType === QueryType.YOUTUBE_PLAYLIST)
+      {
+        let searchResult = await client.player.search(url, {
+          requestedBy: interaction.user,
+          searchEngine: searchType
+        });
+
+        if (searchResult.tracks.length === 0){
+          await interaction.reply("Sorry didn't find anything");
+          return;
+        }
+
+        const playlist = searchResult.tracks;
+
+
+        result = searchResult.playlist;
+
+        for (let i = 0; i < playlist.length; i++) {
+          await queue.addTrack(playlist[i]);
+        } 
+      
+      
+
+      }
+      else
+      {
+        
+        result = await client.player.search(url, {
+          requestedBy: interaction.user,
+          searchEngine: searchType
+        }).then(x => x.tracks[0]);
+
+        if (!result){
+          await interaction.reply("Sorry didn't find anything");
+          return;
+        } 
+        await queue.addTrack(result);
+
+        //await interaction.reply(`🎶 | **${result.title}** added to the queue`);
+      }
+
+
+      
 
       if (!queue.playing) await queue.play();
 
-      await interaction.reply(`🎶 | **${track.title}** added to the queue`);
+      await interaction.reply(`🎶 | **${result.title}** added to the queue`);
 
+      queue.options = {
+        ytdlOptions: {
+          quality: "highestaudio",
+          highWaterMark: 1 << 25,
+        
+        },
+        leaveOnEnd: true,
+        leaveOnEndCooldown: 100000,
+        leaveOnStop: false,
+        autoSelfDeaf: true,
+      }
     }
   }
 }
