@@ -63,7 +63,8 @@ client.player = new Player(client, {
 		quality: "highestaudio",
 		highWaterMark: 1 << 25,
 	
-	}
+	},
+	autoRegisterExtractor: true
 });
 
 client.player.on("trackStart", (queue, track) => queue.metadata.channel.send(`🎶 | Now playing **${track.title}**!`))
