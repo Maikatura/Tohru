@@ -42,9 +42,9 @@ function CreateEmbed()
 
     let message = `I was made by someone called Maikatura!\n`;
     message += `I can be found [here](https://github.com/Maikatura/Tohru)\n`
-    message += `Read bot ToS [here](https://github.com/Maikatura/Tohru)!`
+    message += `Read bot ToS [here](https://github.com/Maikatura/Tohru/blob/main/docs/tos.md)!`
 
-    embed.setDescription(`I was made by someone called Maikatura!\nI can be found [here](https://github.com/Maikatura/Tohru)`);
+    embed.setDescription(message);
 
     return embed;
 }
