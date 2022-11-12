@@ -11,7 +11,8 @@ module.exports = {
 
   execute: async (client, interaction, args) => {
 
-    if (!interaction.member.voice.channel) {
+    if (!interaction.member.voice.channel) 
+    {
       await interaction.reply("You must be in a voice channel");
       return;
     }
@@ -22,24 +23,27 @@ module.exports = {
       }
     });
 
-  
-
     if (!queue.connection) await queue.connect(interaction.member.voice.channel);
 
     let url = args.join(' ');
 
-  
-
-    try {
-      if (!queue.connection) await queue.connect(interaction.member.voice.channel);
-    } catch {
+    try 
+    {
+      if (!queue.connection) 
+      {
+        await queue.connect(interaction.member.voice.channel);
+      }
+    } 
+    catch 
+    {
       queue.destroy();
       return await interaction.reply({ content: "Could not join your voice channel!", ephemeral: true });
     }
 
     let searchType = QueryType.AUTO;
 
-      if (url.includes("list=")){
+      if (url.includes("list="))
+      {
         searchType = QueryType.YOUTUBE_PLAYLIST;
       }
   
@@ -52,7 +56,8 @@ module.exports = {
           searchEngine: searchType
         });
 
-        if (searchResult.tracks.length === 0){
+        if (searchResult.tracks.length === 0)
+        {
           await interaction.reply("Sorry didn't find anything");
           return;
         }
@@ -62,7 +67,8 @@ module.exports = {
 
         result = searchResult.playlist;
 
-        for (let i = 0; i < playlist.length; i++) {
+        for (let i = 0; i < playlist.length; i++) 
+        {
           await queue.addTrack(playlist[i]);
         } 
       
@@ -77,7 +83,8 @@ module.exports = {
           searchEngine: searchType
         }).then(x => x.tracks[0]);
 
-        if (!result){
+        if (!result)
+        {
           await interaction.reply("Sorry didn't find anything");
           return;
         } 
@@ -96,9 +103,11 @@ module.exports = {
           highWaterMark: 1 << 25,
         
         },
+        autoRegisterExtractor: true,
         leaveOnEnd: true,
-        leaveOnEndCooldown: 100000,
-        leaveOnStop: false,
+        leaveOnEndCooldown: 300000,
+        leaveOnStop: true,
+        leaveOnStopCooldown: 300000,
         autoSelfDeaf: true,
       }
       
@@ -136,22 +145,27 @@ module.exports = {
       let url = interaction.options.getString("song");
 
 
-      try {
-        if (!queue.connection) await queue.connect(interaction.member.voice.channel);
-      } catch {
+      try 
+      {
+        if (!queue.connection) 
+        {
+          await queue.connect(interaction.member.voice.channel);
+        }
+      } 
+      catch 
+      {
         queue.destroy();
         return await interaction.reply({ content: "Could not join your voice channel!", ephemeral: true });
       }
 
       let searchType = QueryType.AUTO;
 
-      if (url.includes("list=")){
+      if (url.includes("list="))
+      {
         searchType = QueryType.YOUTUBE_PLAYLIST;
       }
   
       let result;
-
-      console.log(interaction.user);
 
       if (searchType === QueryType.YOUTUBE_PLAYLIST)
       {
@@ -160,7 +174,8 @@ module.exports = {
           searchEngine: searchType
         });
 
-        if (searchResult.tracks.length === 0){
+        if (searchResult.tracks.length === 0)
+        {
           await interaction.reply("Sorry didn't find anything");
           return;
         }
@@ -170,7 +185,8 @@ module.exports = {
 
         result = searchResult.playlist;
 
-        for (let i = 0; i < playlist.length; i++) {
+        for (let i = 0; i < playlist.length; i++) 
+        {
           await queue.addTrack(playlist[i]);
         } 
       
@@ -185,7 +201,8 @@ module.exports = {
           searchEngine: searchType
         }).then(x => x.tracks[0]);
 
-        if (!result){
+        if (!result)
+        {
           await interaction.reply("Sorry didn't find anything");
           return;
         } 
@@ -201,15 +218,18 @@ module.exports = {
 
       await interaction.reply(`🎶 | **${result.title}** added to the queue`);
 
+
       queue.options = {
         ytdlOptions: {
           quality: "highestaudio",
           highWaterMark: 1 << 25,
         
         },
+        autoRegisterExtractor: true,
         leaveOnEnd: true,
-        leaveOnEndCooldown: 100000,
-        leaveOnStop: false,
+        leaveOnEndCooldown: 300000,
+        leaveOnStop: true,
+        leaveOnStopCooldown: 300000,
         autoSelfDeaf: true,
       }
     }

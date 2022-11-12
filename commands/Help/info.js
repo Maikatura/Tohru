@@ -17,7 +17,8 @@ module.exports = {
       });
 
   },
-  SlashCommand: {
+  SlashCommand: 
+  {
 
     execute: async (client, interaction, args) => {
 
@@ -29,11 +30,8 @@ module.exports = {
                 await CreateEmbed()
               ]
           });
-
-
     }
   }
-  
 }
 
 function CreateEmbed()

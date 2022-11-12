@@ -18,7 +18,7 @@ const commands = [];
 // Grab all the command files from the commands directory you created earlier
 const commandsPath = path.join(__dirname, 'commands');
 
-const folder = __dirname + "/commands/"
+const folder = __dirname + "/commands/";
 
 const files = fs.readdirSync(folder);
 files.filter(f => fs.statSync(folder + f).isDirectory())
@@ -27,29 +27,31 @@ const jsFiles = files.filter(f => f.endsWith('.js'));
 
 const commandFiles = jsFiles;
 
-for (const file of commandFiles) {
+for (const file of commandFiles) 
+{
 	const command = require(`./commands/${file}`);
 
 	let dataStuff = {
         name: command.name,
         description: command.description,
         options: command.SlashCommand.options,
-      };
+    };
 
 	commands.push(dataStuff);
 }
 
-for (const file of commandFiles) {
+
+for (const file of commandFiles) 
+{
 	const filePath = path.join(commandsPath, file);
 	const command = require(filePath);
 	// Set a new item in the Collection with the key as the command name and the value as the exported module
-	if (!command.name || !command.description || !command.execute) {
+	if (!command.name || !command.description || !command.execute) 
+	{
 		console.log("Failed");
-
-		
-	} else {
-
-
+	} 
+	else 
+	{
 		let scriptName = file.split("/").pop();
 		let commandName = scriptName.split(".")[0];
 
@@ -74,7 +76,7 @@ client.on(Events.Error, (error) => console.log(error));
 client.player.on("error", (error) => {console.log(error)});
 client.player.on("connectionError", (error) => {console.log(error)});
 
-client.on("ready", () => {
+client.on(Events.ClientReady, () => {
 
 	const guild_ids = client.guilds.cache.map(guild => guild);
 
@@ -88,12 +90,6 @@ client.on("ready", () => {
 		.then(() => console.log(`Added commands to ${guildId.id}, Name of Guild: ${guildId.name}`))
 		.catch(console.error);
 	}
-	// client.guilds.cache.forEach((guild) => {
-	// 	require("./utils/RegisterSlashCommands")(client, guild.id);
-	// });
-
-
-
 });
 
 client.on(Events.MessageCreate, async (interaction) => {
@@ -102,11 +98,9 @@ client.on(Events.MessageCreate, async (interaction) => {
 
 	const channel = await client.channels.cache.get(interaction.channelId);
 	
-	let message = await channel.messages
-    .fetch({ limit: 1 })
-    .then(messagePage => (messagePage.size === 1 ? messagePage.at(0) : null));
+	let message = await channel.messages.fetch({ limit: 1 })
+    									.then(messagePage => (messagePage.size === 1 ? messagePage.at(0) : null));
 
-	
 	let argsTemp = message.content.split(" ");
 	let cmd = argsTemp[0].toLowerCase();
 
@@ -118,7 +112,7 @@ client.on(Events.MessageCreate, async (interaction) => {
 
 	if (!command) 
 	{
-		console.error(`No command matching ${interaction.commandName} was found.`);
+		console.error(`No command matching ${realCmd} was found.`);
 		return;
 	}
 
@@ -143,15 +137,21 @@ client.on(Events.InteractionCreate, async (interaction) => {
 	const command = client.commands.get(interaction.commandName.toLowerCase());
 	const args = command.options;
 
-	if (!command) {
+	if (!command) 
+	{
 		console.error(`No command matching ${interaction.commandName} was found.`);
 		return;
 	}
 
-	try {
+	try 
+	{
 		if (command.SlashCommand && command.execute)
+		{
 			command.SlashCommand.execute(client, interaction, args);
-	} catch (error) {
+		}
+	} 
+	catch (error) 
+	{
 		console.error(error);
 		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	}
