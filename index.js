@@ -71,10 +71,11 @@ client.player = new Player(client, {
 
 client.player.on("trackStart", (queue, track) => queue.metadata.channel.send(`🎶 | Now playing **${track.title}**!`))
 
-client.on(Events.Error, (error) => console.log(error));
 
 client.player.on("error", (error) => {console.log(error)});
 client.player.on("connectionError", (error) => {console.log(error)});
+
+client.on(Events.Error, (error) => console.log(error));
 
 client.on(Events.ClientReady, () => {
 
@@ -91,6 +92,23 @@ client.on(Events.ClientReady, () => {
 		.catch(console.error);
 	}
 });
+
+client.on(Events.GuildCreate, () => {
+	
+	const guild_ids = client.guilds.cache.map(guild => guild);
+
+	const rest = new REST({version: "9"}).setToken(TOKEN);
+
+	for (const guildId of guild_ids)
+	{ 
+		rest.put(Routes.applicationGuildCommands(clientId, guildId.id), {
+			body: commands
+		})
+		.then(() => console.log(`Added commands to ${guildId.id}, Name of Guild: ${guildId.name}`))
+		.catch(console.error);
+	}
+
+})
 
 client.on(Events.MessageCreate, async (interaction) => {
 
