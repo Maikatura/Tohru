@@ -127,4 +127,5 @@ dist
 .pnp.*
 !config-template.json
 config.json
+config1.json
 /commands/**/*.json
