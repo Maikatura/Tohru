@@ -125,7 +125,5 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-!config-template.json
-config.json
-config1.json
+config/config*.json
 /commands/**/*.json

@@ -4,7 +4,7 @@ const { REST } = require("@discordjs/rest");
 const { Routes } = require("discord-api-types/v9");
 const Discord = require('discord.js');
 const { Client, Collection, Events, IntentsBitField, Intents } = require('discord.js');
-const { TOKEN, clientId, Prefix } = require("./config.json");
+const { TOKEN, clientId, Prefix } = require("./config/config.json");
 const { Player } = require("discord-player");
 
 

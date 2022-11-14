@@ -13,17 +13,23 @@ module.exports = {
 
     const queue = client.player.getQueue(interaction.guild);
 
-      if (!queue) 
-      {
-        await interaction.reply("There is no song playing.");
-        return;
-      }
+    if (!queue) 
+    {
+      await interaction.reply("There is no song playing.");
+      return;
+    }
 
-      const currentSong = queue.current;
+    const currentSong = queue.current;
 
-      queue.skip();
+    if (!currentSong) 
+    {
+      await interaction.reply("There is no song playing.");
+      return;
+    }
 
-      await interaction.reply(`❌ | Skipping **${currentSong.title}**!`);
+    queue.skip();
+
+    await interaction.reply(`❌ | Skipping **${currentSong.title}**!`);
 
   },
   SlashCommand: {
@@ -32,12 +38,19 @@ module.exports = {
 
       const queue = client.player.getQueue(interaction.guild);
 
-      if (!queue) {
+      if (!queue) 
+      {
         await interaction.reply("There is no song playing.");
         return;
       }
 
       const currentSong = queue.current;
+
+      if (!currentSong) 
+      {
+        await interaction.reply("There is no song playing.");
+        return;
+      }
 
       queue.skip();
 
