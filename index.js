@@ -27,31 +27,27 @@ const jsFiles = files.filter(f => f.endsWith('.js'));
 
 const commandFiles = jsFiles;
 
-for (const file of commandFiles) 
-{
+for (const file of commandFiles) {
 	const command = require(`./commands/${file}`);
 
 	let dataStuff = {
-        name: command.name,
-        description: command.description,
-        options: command.SlashCommand.options,
-    };
+		name: command.name,
+		description: command.description,
+		options: command.SlashCommand.options,
+	};
 
 	commands.push(dataStuff);
 }
 
 
-for (const file of commandFiles) 
-{
+for (const file of commandFiles) {
 	const filePath = path.join(commandsPath, file);
 	const command = require(filePath);
 	// Set a new item in the Collection with the key as the command name and the value as the exported module
-	if (!command.name || !command.description || !command.execute) 
-	{
+	if (!command.name || !command.description || !command.execute) {
 		console.log("Failed");
-	} 
-	else 
-	{
+	}
+	else {
 		let scriptName = file.split("/").pop();
 		let commandName = scriptName.split(".")[0];
 
@@ -64,7 +60,7 @@ client.player = new Player(client, {
 	ytdlOptions: {
 		quality: "highestaudio",
 		highWaterMark: 1 << 25,
-	
+
 	},
 	autoRegisterExtractor: true
 });
@@ -72,8 +68,12 @@ client.player = new Player(client, {
 client.player.on("trackStart", (queue, track) => queue.metadata.channel.send(`🎶 | Now playing **${track.title}**!`))
 
 
-client.player.on("error", (error) => {console.log(error)});
-client.player.on("connectionError", (error) => {console.log(error)});
+client.player.on("error", (error) => { console.log(error) });
+client.player.on("connectionError", (error) => { console.log(error) });
+
+client.on(Events.MessageC, (error) => {
+
+});
 
 client.on(Events.Error, (error) => console.log(error));
 
@@ -81,73 +81,76 @@ client.on(Events.ClientReady, () => {
 
 	const guild_ids = client.guilds.cache.map(guild => guild);
 
-	const rest = new REST({version: "9"}).setToken(TOKEN);
+	const rest = new REST({ version: "9" }).setToken(TOKEN);
 
-	for (const guildId of guild_ids)
-	{ 
+	for (const guildId of guild_ids) {
 		rest.put(Routes.applicationGuildCommands(clientId, guildId.id), {
 			body: commands
 		})
-		.then(() => console.log(`Added commands to ${guildId.id}, Name of Guild: ${guildId.name}`))
-		.catch(console.error);
+			.then(() => console.log(`Added commands to ${guildId.id}, Name of Guild: ${guildId.name}`))
+			.catch(console.error);
 	}
 });
 
 client.on(Events.GuildCreate, () => {
-	
+
 	const guild_ids = client.guilds.cache.map(guild => guild);
 
-	const rest = new REST({version: "9"}).setToken(TOKEN);
+	const rest = new REST({ version: "9" }).setToken(TOKEN);
 
-	for (const guildId of guild_ids)
-	{ 
+	for (const guildId of guild_ids) {
 		rest.put(Routes.applicationGuildCommands(clientId, guildId.id), {
 			body: commands
 		})
-		.then(() => console.log(`Added commands to ${guildId.id}, Name of Guild: ${guildId.name}`))
-		.catch(console.error);
+			.then(() => console.log(`Added commands to ${guildId.id}, Name of Guild: ${guildId.name}`))
+			.catch(console.error);
 	}
 
 })
 
 client.on(Events.MessageCreate, async (interaction) => {
 
-	if(interaction.author.bot === true) return;
+	if (interaction.author.bot === true) return;
 
 	const channel = await client.channels.cache.get(interaction.channelId);
-	
+
 	let message = await channel.messages.fetch({ limit: 1 })
-    									.then(messagePage => (messagePage.size === 1 ? messagePage.at(0) : null));
+		.then(messagePage => (messagePage.size === 1 ? messagePage.at(0) : null));
 
 	let argsTemp = message.content.split(" ");
 	let cmd = argsTemp[0].toLowerCase();
 
 	let realCmd = cmd.replace(Prefix, '');
-	
+
 	const command = client.commands.get(realCmd.toLowerCase());
 	let args = argsTemp.join(' ').replace(argsTemp[0] + ' ', '').split(' ');
-	
 
-	if (!command) 
-	{
+
+	if (!command) {
 		console.error(`No command matching ${realCmd} was found.`);
 		return;
 	}
 
-    try 
-	{
-		if (command && command.execute)
-		{
+	try {
+		if (command && command.execute) {
 			command.execute(client, interaction, args);
 		}
-	} 
-	catch (error) 
-	{
+	}
+	catch (error) {
 		console.error(error);
 		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	}
 });
 
+
+client.on(Events.InteractionCreate, interaction => {
+
+	if (!interaction.isButton()) return;
+	console.log(interaction);
+
+	interaction.reply("Hi");
+
+});
 client.on(Events.InteractionCreate, async (interaction) => {
 
 	if (!interaction.isChatInputCommand()) return;
@@ -155,25 +158,21 @@ client.on(Events.InteractionCreate, async (interaction) => {
 	const command = client.commands.get(interaction.commandName.toLowerCase());
 	const args = command.options;
 
-	if (!command) 
-	{
+	if (!command) {
 		console.error(`No command matching ${interaction.commandName} was found.`);
 		return;
 	}
 
-	try 
-	{
-		if (command.SlashCommand && command.execute)
-		{
+
+	try {
+		if (command.SlashCommand && command.execute) {
 			command.SlashCommand.execute(client, interaction, args);
 		}
-	} 
-	catch (error) 
-	{
+	}
+	catch (error) {
 		console.error(error);
 		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	}
-
 });
 
 client.login(TOKEN);
