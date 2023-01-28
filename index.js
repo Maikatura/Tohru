@@ -44,9 +44,8 @@ client.on(Events.ClientReady, () => {
 	}
 
 	console.log(`Logged in as ${client.user.tag}!`);
-
+	
     console.log('Generating docs...');
-
 	generateDocs(client.commands);
 });
 
