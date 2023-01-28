@@ -21,6 +21,7 @@
     "djs-commands": "^1.2.2",
     "ffmpeg": "^0.0.4",
     "fs": "^0.0.1-security",
+    "mdtable": "^0.3.1",
     "nodemon": "^2.0.20",
     "path": "^0.12.7"
   }

@@ -11,97 +11,30 @@ module.exports = {
 
   execute: async (client, interaction, args) => {
 
-    if (!interaction.member.voice.channel) 
-    {
-      await interaction.reply("You must be in a voice channel");
-      return;
+    const guild = interaction.guild;
+    const channel = interaction.channel;
+    const query = args.join(' ');
+
+
+    if (query.includes("spotify")){
+      return await interaction.reply("Sorry spotify is a little broken rn!")
     }
 
-    const queue = await client.player.createQueue(interaction.guild, {
-      metadata: {
-        channel: interaction.channel
-      }
-    });
-
-    if (!queue.connection) await queue.connect(interaction.member.voice.channel);
-
-    let url = args.join(' ');
-
-    try 
-    {
-      if (!queue.connection) 
-      {
-        await queue.connect(interaction.member.voice.channel);
-      }
-    } 
-    catch 
-    {
-      queue.destroy();
-      return await interaction.reply({ content: "Could not join your voice channel!", ephemeral: true });
-    }
-
-    let searchType = QueryType.AUTO;
-
-      if (url.includes("list="))
-      {
-        searchType = QueryType.YOUTUBE_PLAYLIST;
-      }
-  
-      let result;
-
-      if (searchType === QueryType.YOUTUBE_PLAYLIST)
-      {
-        let searchResult = await client.player.search(url, {
-          requestedBy: interaction.author,
-          searchEngine: searchType
+    const searchResult = await client.player
+        .search(query, {
+            requestedBy: interaction.author,
+            searchEngine: QueryType.AUTO
+        })
+        .catch(() => {
+            console.log('he');
         });
+    if (!searchResult || !searchResult.tracks.length) return void interaction.reply({ content: 'No results were found!' });
 
-        if (searchResult.tracks.length === 0)
-        {
-          await interaction.reply("Sorry didn't find anything");
-          return;
-        }
-
-        const playlist = searchResult.tracks;
-
-
-        result = searchResult.playlist;
-
-        for (let i = 0; i < playlist.length; i++) 
-        {
-          await queue.addTrack(playlist[i]);
-        } 
-      
-      
-
-      }
-      else
-      {
-        
-        result = await client.player.search(url, {
-          requestedBy: interaction.author,
-          searchEngine: searchType
-        }).then(x => x.tracks[0]);
-
-        if (!result)
-        {
-          await interaction.reply("Sorry didn't find anything");
-          return;
-        } 
-        await queue.addTrack(result);
-
-        //await interaction.reply(`🎶 | **${result.title}** added to the queue`);
-      }
-
-      if (!queue.playing) await queue.play();
-
-      await interaction.reply(`🎶 | **${result.title}** added to the queue`);
-      
-      queue.options = {
+    const queue = await client.player.createQueue(guild, {
         ytdlOptions: {
-          quality: "highestaudio",
-          highWaterMark: 1 << 25,
-        
+            filter: 'audioonly',
+            highWaterMark: 1 << 30,
+            dlChunkSize: 0,
         },
         autoRegisterExtractor: true,
         leaveOnEnd: true,
@@ -109,8 +42,22 @@ module.exports = {
         leaveOnStop: true,
         leaveOnStopCooldown: 300000,
         autoSelfDeaf: true,
-      }
-      
+        metadata: channel
+    });
+
+    const member = guild.members.cache.get(interaction.author.id) ?? await guild.members.fetch(interaction.author.id);
+    try {
+        if (!queue.connection) await queue.connect(member.voice.channel);
+    } catch {
+        void client.player.deleteQueue(ctx.guildID);
+        return void interaction.reply({ content: 'Could not join your voice channel!' });
+    }
+
+    await interaction.reply({ content: `⏱ | Loading your ${searchResult.playlist ? 'playlist' : 'track'}...` });
+    searchResult.playlist ? queue.addTracks(searchResult.tracks) : queue.addTrack(searchResult.tracks[0]);
+    if (!queue.playing) await queue.play();
+
+
   },
   SlashCommand: {
 
@@ -124,114 +71,53 @@ module.exports = {
     ],
 
     execute: async (client, interaction, args) => {
-      if (!interaction.member.voice.channel) {
-        await interaction.reply("You must be in a voice channel");
-        return;
-      }
-
-      const queue = await client.player.createQueue(interaction.guild, {
-        metadata: {
-          channel: interaction.channel
-        }
-      });
-
-      
-
-      if (!queue.connection) await queue.connect(interaction.member.voice.channel);
-
-
-
-
-      let url = interaction.options.getString("song");
-
-
-      try 
-      {
-        if (!queue.connection) 
-        {
-          await queue.connect(interaction.member.voice.channel);
-        }
-      } 
-      catch 
-      {
-        queue.destroy();
-        return await interaction.reply({ content: "Could not join your voice channel!", ephemeral: true });
-      }
-
-      let searchType = QueryType.AUTO;
-
-      if (url.includes("list="))
-      {
-        searchType = QueryType.YOUTUBE_PLAYLIST;
+     
+      const guild = interaction.guild;
+      const channel = interaction.channel;
+      const query = interaction.options.getString("song");
+  
+  
+      if (query.includes("spotify")){
+        return await interaction.reply("Sorry spotify is a little broken rn!")
       }
   
-      let result;
-
-      if (searchType === QueryType.YOUTUBE_PLAYLIST)
-      {
-        let searchResult = await client.player.search(url, {
-          requestedBy: interaction.user,
-          searchEngine: searchType
-        });
-
-        if (searchResult.tracks.length === 0)
-        {
-          await interaction.reply("Sorry didn't find anything");
-          return;
-        }
-
-        const playlist = searchResult.tracks;
-
-
-        result = searchResult.playlist;
-
-        for (let i = 0; i < playlist.length; i++) 
-        {
-          await queue.addTrack(playlist[i]);
-        } 
-      
-      
-
+      const searchResult = await client.player
+          .search(query, {
+              requestedBy: interaction.user,
+              searchEngine: QueryType.AUTO
+          })
+          .catch(() => {
+              console.log('he');
+          });
+      if (!searchResult || !searchResult.tracks.length) return void interaction.reply({ content: 'No results were found!' });
+  
+      const queue = await client.player.createQueue(guild, {
+          ytdlOptions: {
+              filter: 'audioonly',
+              highWaterMark: 1 << 30,
+              dlChunkSize: 0,
+          },
+          autoRegisterExtractor: true,
+          leaveOnEnd: true,
+          leaveOnEndCooldown: 300000,
+          leaveOnStop: true,
+          leaveOnStopCooldown: 300000,
+          autoSelfDeaf: true,
+          metadata: channel
+      });
+  
+      const member = guild.members.cache.get(interaction.user.id) ?? await guild.members.fetch(interaction.user.id);
+      try {
+          if (!queue.connection) await queue.connect(member.voice.channel);
+      } catch {
+          void client.player.deleteQueue(ctx.guildID);
+          return void interaction.reply({ content: 'Could not join your voice channel!' });
       }
-      else
-      {
-        
-        result = await client.player.search(url, {
-          requestedBy: interaction.user,
-          searchEngine: searchType
-        }).then(x => x.tracks[0]);
-
-        if (!result)
-        {
-          await interaction.reply("Sorry didn't find anything");
-          return;
-        } 
-        await queue.addTrack(result);
-
-        //await interaction.reply(`🎶 | **${result.title}** added to the queue`);
-      }
-
-
-      
-
+  
+      await interaction.reply({ content: `⏱ | Loading your ${searchResult.playlist ? 'playlist' : 'track'}...` });
+      searchResult.playlist ? queue.addTracks(searchResult.tracks) : queue.addTrack(searchResult.tracks[0]);
       if (!queue.playing) await queue.play();
 
-      await interaction.reply(`🎶 | **${result.title}** added to the queue`);
-
-
-      queue.options = {
-        ytdlOptions: {
-          quality: "highestaudio",
-          highWaterMark: 1 << 25,
-        
-        },
-        autoRegisterExtractor: true,
-        leaveOnEnd: true,
-        leaveOnEndCooldown: 300000,
-        leaveOnStop: true,
-        leaveOnStopCooldown: 300000,
-        autoSelfDeaf: true,
-      }
     }
   }
 }

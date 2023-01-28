@@ -1,11 +1,12 @@
-const fs = require('fs');
-const path = require('node:path');
 const { REST } = require("@discordjs/rest");
 const { Routes } = require("discord-api-types/v9");
 const Discord = require('discord.js');
 const { Client, Collection, Events, IntentsBitField, Intents } = require('discord.js');
 const { TOKEN, clientId, Prefix } = require("./config/config.json");
 const { Player } = require("discord-player");
+const { registerPlayerEvents } = require('./events');
+const { generateDocs } = require('./docs');
+const { generateCommands, commands } = require('./RegisterCommands');
 
 
 const myIntents = new IntentsBitField();
@@ -13,48 +14,6 @@ myIntents.add(IntentsBitField.Flags.Guilds, IntentsBitField.Flags.GuildMessages,
 
 const client = new Discord.Client({ intents: myIntents });
 client.commands = new Collection();
-
-const commands = [];
-// Grab all the command files from the commands directory you created earlier
-const commandsPath = path.join(__dirname, 'commands');
-
-const folder = __dirname + "/commands/";
-
-const files = fs.readdirSync(folder);
-files.filter(f => fs.statSync(folder + f).isDirectory())
-	.forEach(nested => fs.readdirSync(folder + nested).forEach(f => files.push(nested + '/' + f)));
-const jsFiles = files.filter(f => f.endsWith('.js'));
-
-const commandFiles = jsFiles;
-
-for (const file of commandFiles) {
-	const command = require(`./commands/${file}`);
-
-	let dataStuff = {
-		name: command.name,
-		description: command.description,
-		options: command.SlashCommand.options,
-	};
-
-	commands.push(dataStuff);
-}
-
-
-for (const file of commandFiles) {
-	const filePath = path.join(commandsPath, file);
-	const command = require(filePath);
-	// Set a new item in the Collection with the key as the command name and the value as the exported module
-	if (!command.name || !command.description || !command.execute) {
-		console.log("Failed");
-	}
-	else {
-		let scriptName = file.split("/").pop();
-		let commandName = scriptName.split(".")[0];
-
-		client.commands.set(commandName.toLowerCase(), command);
-		console.log("Command Loaded: " + commandName);
-	}
-}
 
 client.player = new Player(client, {
 	ytdlOptions: {
@@ -65,15 +24,8 @@ client.player = new Player(client, {
 	autoRegisterExtractor: true
 });
 
-client.player.on("trackStart", (queue, track) => queue.metadata.channel.send(`🎶 | Now playing **${track.title}**!`))
-
-
-client.player.on("error", (error) => { console.log(error) });
-client.player.on("connectionError", (error) => { console.log(error) });
-
-client.on(Events.MessageC, (error) => {
-
-});
+registerPlayerEvents(client.player);
+generateCommands(client);
 
 client.on(Events.Error, (error) => console.log(error));
 
@@ -85,11 +37,17 @@ client.on(Events.ClientReady, () => {
 
 	for (const guildId of guild_ids) {
 		rest.put(Routes.applicationGuildCommands(clientId, guildId.id), {
-			body: commands
+			body: client.commands
 		})
-			.then(() => console.log(`Added commands to ${guildId.id}, Name of Guild: ${guildId.name}`))
-			.catch(console.error);
+		.then(() => console.log(`Added commands to ${guildId.id}, Name of Guild: ${guildId.name}`))
+		.catch(console.error);
 	}
+
+	console.log(`Logged in as ${client.user.tag}!`);
+
+    console.log('Generating docs...');
+
+	generateDocs(client.commands);
 });
 
 client.on(Events.GuildCreate, () => {
@@ -141,7 +99,6 @@ client.on(Events.MessageCreate, async (interaction) => {
 		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	}
 });
-
 
 client.on(Events.InteractionCreate, interaction => {
 
