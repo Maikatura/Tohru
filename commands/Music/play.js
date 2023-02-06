@@ -8,8 +8,13 @@ module.exports = {
   description: "Play a song.",
   usage: "",
   aliases: ["p"],
+  PMAllowed: false,
 
   execute: async (client, interaction, args) => {
+
+
+    if (!interaction.member.voice.channelId) return await interaction.reply({ content: "You are not in a voice channel!", ephemeral: true });
+    if (interaction.guild.members.me.voice.channelId && interaction.member.voice.channelId !== interaction.guild.members.me.voice.channelId) return await interaction.reply({ content: "You are not in my voice channel!", ephemeral: true });
 
     const guild = client.guilds.cache.get(interaction.guild.id);
     const channel = guild.channels.cache.get(interaction.channel.id);
@@ -34,7 +39,7 @@ module.exports = {
         ytdlOptions: {
             filter: 'audioonly',
             highWaterMark: 1 << 30,
-            dlChunkSize: 0,
+            dlChunkSize: 3,
         },
         autoRegisterExtractor: true,
         leaveOnEnd: true,
@@ -42,7 +47,9 @@ module.exports = {
         leaveOnStop: true,
         leaveOnStopCooldown: 300000,
         autoSelfDeaf: true,
-        metadata: channel
+        metadata: {
+          channel: interaction.channel
+      }
     });
 
     const member = guild.members.cache.get(interaction.author.id) ?? await guild.members.fetch(interaction.author.id);
@@ -76,6 +83,9 @@ module.exports = {
 
     execute: async (client, interaction, args) => {
      
+      if (!interaction.member.voice.channelId) return await interaction.reply({ content: "You are not in a voice channel!", ephemeral: true });
+      if (interaction.guild.members.me.voice.channelId && interaction.member.voice.channelId !== interaction.guild.members.me.voice.channelId) return await interaction.reply({ content: "You are not in my voice channel!", ephemeral: true });
+
       const guild = client.guilds.cache.get(interaction.guild.id);
       const channel = guild.channels.cache.get(interaction.channel.id);
       const query = interaction.options.getString("song");
@@ -106,7 +116,9 @@ module.exports = {
           leaveOnStop: true,
           leaveOnStopCooldown: 300000,
           autoSelfDeaf: true,
-          metadata: channel
+          metadata: {
+            channel: interaction.channel
+        }
       });
   
       const member = guild.members.cache.get(interaction.user.id) ?? await guild.members.fetch(interaction.user.id);

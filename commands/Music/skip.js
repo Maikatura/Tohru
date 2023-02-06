@@ -8,6 +8,7 @@ module.exports = {
   description: "Skip the current song.",
   usage: "",
   aliases: ["conf"],
+  PMAllowed: false,
 
   execute: async (client, interaction, args) => {
 

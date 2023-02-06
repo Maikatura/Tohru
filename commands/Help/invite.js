@@ -8,6 +8,7 @@ module.exports = {
   description: "Invite me.",
   usage: "",
   aliases: ["inv"],
+  PMAllowed: true,
 
   execute: async (client, interaction, args) => {
 

@@ -8,6 +8,7 @@ module.exports = {
   description: "Set the current volume.",
   usage: "",
   aliases: ["conf"],
+  PMAllowed: false,
 
   execute: async (client, interaction, args) => {
 

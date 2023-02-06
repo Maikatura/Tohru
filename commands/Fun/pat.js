@@ -9,7 +9,8 @@ module.exports = {
   description: "Give someone a path",
   usage: "",
   aliases: ["path"],
-
+  PMAllowed: false,
+  
   execute: async (client, interaction, args) => {
 
     let dataPath = './commands/Fun/pat.json'
