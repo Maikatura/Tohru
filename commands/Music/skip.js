@@ -11,50 +11,31 @@ module.exports = {
 
   execute: async (client, interaction, args) => {
 
-    const queue = client.player.getQueue(interaction.guild);
+      const guild = client.guilds.cache.get(interaction.guild.id);
+      const queue = client.player.getQueue(guild);
 
-    if (!queue) 
-    {
-      await interaction.reply("There is no song playing.");
-      return;
-    }
-
-    const currentSong = queue.current;
-
-    if (!currentSong) 
-    {
-      await interaction.reply("There is no song playing.");
-      return;
-    }
-
-    queue.skip();
-
-    await interaction.reply(`❌ | Skipping **${currentSong.title}**!`);
+      if (!queue || !queue.playing) return void interaction.reply({ content: '❌ | No music is being played!' });
+      const currentTrack = queue.current;
+      const success = queue.skip();
+      return void interaction.reply({
+          content: success ? `✅ | Skipped **${currentTrack}**!` : '❌ | Something went wrong!'
+      });
 
   },
   SlashCommand: {
 
     execute: async (client, interaction, args) => {
 
-      const queue = client.player.getQueue(interaction.guild);
+      const guild = client.guilds.cache.get(interaction.guild.id);
+      const queue = client.player.getQueue(guild);
 
-      if (!queue) 
-      {
-        await interaction.reply("There is no song playing.");
-        return;
-      }
-
-      const currentSong = queue.current;
-
-      if (!currentSong) 
-      {
-        await interaction.reply("There is no song playing.");
-        return;
-      }
-
-      queue.skip();
-
-      await interaction.reply(`❌ | Skipping **${currentSong.title}**!`);
+      if (!queue || !queue.playing) return void interaction.reply({ content: '❌ | No music is being played!' });
+      const currentTrack = queue.current;
+      const success = queue.skip();
+      return void interaction.reply({
+          content: success ? `✅ | Skipped **${currentTrack}**!` : '❌ | Something went wrong!'
+      });
+      
     }
   }
 }

@@ -11,13 +11,12 @@ module.exports = {
 
   execute: async (client, interaction, args) => {
 
-
-
-    const queue = client.player.getQueue(interaction.guild);
+    const guild = client.guilds.cache.get(interaction.guild.id)
+    const queue = client.player.getQueue(guild);
 
     if (!queue || !queue.playing) 
     {
-      await interaction.reply("There is no song playing.");
+      await interaction.reply("There is no song playing. Error 1");
       return;
     }
 
@@ -39,7 +38,8 @@ module.exports = {
 
 
     execute: async (client, interaction, args) => {
-      const queue = client.player.getQueue(interaction.guild);
+      const guild = client.guilds.cache.get(interaction.guild.id)
+      const queue = client.player.getQueue(guild);
 
       if (!queue || !queue.playing) 
       {
@@ -56,6 +56,10 @@ module.exports = {
           embeds:
             [
               
+                new EmbedBuilder()
+                  .setDescription(`**Currenly Playing:**\n ${currentSong.title} - <@${currentSong.requestedBy.id}>\n\n**Queue:**\n${queueString}`)
+                  .setThumbnail(currentSong.thumbnail)
+        
             ]
         }
       );

@@ -6,8 +6,9 @@ const { TOKEN, clientId, Prefix } = require("./config/config.json");
 const { Player } = require("discord-player");
 const { registerPlayerEvents } = require('./events');
 const { generateDocs } = require('./docs');
-const { generateCommands, commands } = require('./RegisterCommands');
+const { generateCommands } = require('./RegisterCommands');
 
+const commands = [];
 
 const myIntents = new IntentsBitField();
 myIntents.add(IntentsBitField.Flags.Guilds, IntentsBitField.Flags.GuildMessages, IntentsBitField.Flags.GuildVoiceStates);
@@ -24,12 +25,14 @@ client.player = new Player(client, {
 	autoRegisterExtractor: true
 });
 
-registerPlayerEvents(client.player);
-generateCommands(client);
-
 client.on(Events.Error, (error) => console.log(error));
 
 client.on(Events.ClientReady, () => {
+	
+    console.log('Generating docs...');
+	generateDocs(client.commands);
+	registerPlayerEvents(client.player);
+	generateCommands(client, commands);
 
 	const guild_ids = client.guilds.cache.map(guild => guild);
 
@@ -37,16 +40,14 @@ client.on(Events.ClientReady, () => {
 
 	for (const guildId of guild_ids) {
 		rest.put(Routes.applicationGuildCommands(clientId, guildId.id), {
-			body: client.commands
+			body: commands
 		})
 		.then(() => console.log(`Added commands to ${guildId.id}, Name of Guild: ${guildId.name}`))
 		.catch(console.error);
 	}
 
+
 	console.log(`Logged in as ${client.user.tag}!`);
-	
-    console.log('Generating docs...');
-	generateDocs(client.commands);
 });
 
 client.on(Events.GuildCreate, () => {
@@ -107,6 +108,7 @@ client.on(Events.InteractionCreate, interaction => {
 	interaction.reply("Hi");
 
 });
+
 client.on(Events.InteractionCreate, async (interaction) => {
 
 	if (!interaction.isChatInputCommand()) return;

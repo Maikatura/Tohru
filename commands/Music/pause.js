@@ -11,7 +11,8 @@ module.exports = {
 
   execute: async (client, interaction, args) => {
 
-    const queue = client.player.getQueue(interaction.guild);
+    const guild = client.guilds.cache.get(interaction.guild.id);
+    const queue = client.player.getQueue(guild);
 
     if (!queue) {
         await interaction.reply("There is no song playing.");
@@ -27,8 +28,9 @@ module.exports = {
     
   execute: async (client, interaction, args) => {
 
-    const queue = client.player.getQueue(interaction.guild);
-
+    const guild = client.guilds.cache.get(interaction.guild.id);
+    const queue = client.player.getQueue(guild);
+    
     if (!queue) {
         await interaction.reply("There is no song playing.");
         return;

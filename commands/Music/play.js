@@ -11,8 +11,8 @@ module.exports = {
 
   execute: async (client, interaction, args) => {
 
-    const guild = interaction.guild;
-    const channel = interaction.channel;
+    const guild = client.guilds.cache.get(interaction.guild.id);
+    const channel = guild.channels.cache.get(interaction.channel.id);
     const query = args.join(' ');
 
 
@@ -49,13 +49,17 @@ module.exports = {
     try {
         if (!queue.connection) await queue.connect(member.voice.channel);
     } catch {
-        void client.player.deleteQueue(ctx.guildID);
+        void client.player.deleteQueue(guild);
         return void interaction.reply({ content: 'Could not join your voice channel!' });
     }
 
     await interaction.reply({ content: `⏱ | Loading your ${searchResult.playlist ? 'playlist' : 'track'}...` });
     searchResult.playlist ? queue.addTracks(searchResult.tracks) : queue.addTrack(searchResult.tracks[0]);
-    if (!queue.playing) await queue.play();
+    if (!queue.playing) 
+    {
+      console.log("Play");
+      await queue.play();
+    }
 
 
   },
@@ -72,10 +76,9 @@ module.exports = {
 
     execute: async (client, interaction, args) => {
      
-      const guild = interaction.guild;
-      const channel = interaction.channel;
+      const guild = client.guilds.cache.get(interaction.guild.id);
+      const channel = guild.channels.cache.get(interaction.channel.id);
       const query = interaction.options.getString("song");
-  
   
       if (query.includes("spotify")){
         return await interaction.reply("Sorry spotify is a little broken rn!")
@@ -95,7 +98,7 @@ module.exports = {
           ytdlOptions: {
               filter: 'audioonly',
               highWaterMark: 1 << 30,
-              dlChunkSize: 0,
+              dlChunkSize: 3,
           },
           autoRegisterExtractor: true,
           leaveOnEnd: true,
@@ -110,7 +113,7 @@ module.exports = {
       try {
           if (!queue.connection) await queue.connect(member.voice.channel);
       } catch {
-          void client.player.deleteQueue(ctx.guildID);
+          void client.player.deleteQueue(guild);
           return void interaction.reply({ content: 'Could not join your voice channel!' });
       }
   

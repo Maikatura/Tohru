@@ -1,9 +1,9 @@
 const path = require('node:path');
 const fs = require('fs');
-const commands = [];
 
 
-module.exports.generateCommands = (client) => {
+
+module.exports.generateCommands = (client, commands) => {
 
 
     // Grab all the command files from the commands directory you created earlier
@@ -26,7 +26,7 @@ module.exports.generateCommands = (client) => {
             description: command.description,
             options: command.SlashCommand.options,
         };
-
+        
         commands.push(dataStuff);
     }
 
