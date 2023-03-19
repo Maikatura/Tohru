@@ -12,14 +12,28 @@ module.exports = {
 
   execute: async (client, interaction, args) => {
 
+    if (!interaction.member.voice.channel) {
+      return await interaction.reply("You must be in a voice channel");
+    }
 
-    if (!interaction.member.voice.channelId) return await interaction.reply({ content: "You are not in a voice channel!", ephemeral: true });
-    if (interaction.guild.members.me.voice.channelId && interaction.member.voice.channelId !== interaction.guild.members.me.voice.channelId) return await interaction.reply({ content: "You are not in my voice channel!", ephemeral: true });
-
-    const guild = client.guilds.cache.get(interaction.guild.id);
-    const channel = guild.channels.cache.get(interaction.channel.id);
+    const guild = interaction.guild;
+    const channel = interaction.member.voice.channel;
     const query = args.join(' ');
 
+
+    const queue = await client.player.createQueue(guild, {
+    
+        metadata: {
+          channel: interaction.channel
+        }
+    });
+
+    try {
+      if (!queue.connection) await queue.connect(interaction.member.voice.channel);
+    } catch {
+      queue.destroy();
+      return await interaction.reply({ content: "Could not join your voice channel!", ephemeral: true });
+    }
 
     if (query.includes("spotify")){
       return await interaction.reply("Sorry spotify is a little broken rn!")
@@ -35,28 +49,12 @@ module.exports = {
         });
     if (!searchResult || !searchResult.tracks.length) return void interaction.reply({ content: 'No results were found!' });
 
-    const queue = await client.player.createQueue(guild, {
-        ytdlOptions: {
-            filter: 'audioonly',
-            highWaterMark: 1 << 30,
-            dlChunkSize: 3,
-        },
-        autoRegisterExtractor: true,
-        leaveOnEnd: true,
-        leaveOnEndCooldown: 300000,
-        leaveOnStop: true,
-        leaveOnStopCooldown: 300000,
-        autoSelfDeaf: true,
-        metadata: {
-          channel: interaction.channel
-      }
-    });
 
     const member = guild.members.cache.get(interaction.author.id) ?? await guild.members.fetch(interaction.author.id);
     try {
         if (!queue.connection) await queue.connect(member.voice.channel);
     } catch {
-        void client.player.deleteQueue(guild);
+        queue.destory(guild);
         return void interaction.reply({ content: 'Could not join your voice channel!' });
     }
 
@@ -64,8 +62,19 @@ module.exports = {
     searchResult.playlist ? queue.addTracks(searchResult.tracks) : queue.addTrack(searchResult.tracks[0]);
     if (!queue.playing) 
     {
-      console.log("Play");
       await queue.play();
+    }
+
+    queue.options = {
+      ytdlOptions: {
+        quality: "highestaudio",
+        highWaterMark: 1 << 30,
+      
+      },
+      leaveOnEnd: true,
+      leaveOnEndCooldown: 100000,
+      leaveOnStop: false,
+      autoSelfDeaf: true
     }
 
 
@@ -86,8 +95,8 @@ module.exports = {
       if (!interaction.member.voice.channelId) return await interaction.reply({ content: "You are not in a voice channel!", ephemeral: true });
       if (interaction.guild.members.me.voice.channelId && interaction.member.voice.channelId !== interaction.guild.members.me.voice.channelId) return await interaction.reply({ content: "You are not in my voice channel!", ephemeral: true });
 
-      const guild = client.guilds.cache.get(interaction.guild.id);
-      const channel = guild.channels.cache.get(interaction.channel.id);
+      const guild = interaction.guild;
+      const channel = interaction.member.voice.channel;
       const query = interaction.options.getString("song");
   
       if (query.includes("spotify")){
@@ -105,17 +114,6 @@ module.exports = {
       if (!searchResult || !searchResult.tracks.length) return void interaction.reply({ content: 'No results were found!' });
   
       const queue = await client.player.createQueue(guild, {
-          ytdlOptions: {
-              filter: 'audioonly',
-              highWaterMark: 1 << 30,
-              dlChunkSize: 3,
-          },
-          autoRegisterExtractor: true,
-          leaveOnEnd: true,
-          leaveOnEndCooldown: 300000,
-          leaveOnStop: true,
-          leaveOnStopCooldown: 300000,
-          autoSelfDeaf: true,
           metadata: {
             channel: interaction.channel
         }
@@ -132,7 +130,21 @@ module.exports = {
       await interaction.reply({ content: `⏱ | Loading your ${searchResult.playlist ? 'playlist' : 'track'}...` });
       searchResult.playlist ? queue.addTracks(searchResult.tracks) : queue.addTrack(searchResult.tracks[0]);
       if (!queue.playing) await queue.play();
-
+      
+      
+    queue.options = {
+      ytdlOptions: {
+        quality: "highestaudio",
+        highWaterMark: 1 << 30,
+      },
+      
+      autoRegisterExtractor: true,
+      leaveOnEnd: true,
+      leaveOnEndCooldown: 300000,
+      leaveOnStop: true,
+      leaveOnStopCooldown: 300000,
+      autoSelfDeaf: true,
+    }
     }
   }
 }
